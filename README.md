@@ -2,10 +2,10 @@
 ![](GIF/easyIK.gif)
 
 ## Setup
-* Drag and drop the script om the root joint.
+* Drag and drop the script on the root joint.
 * Set the correct number of joints.
 * Assign a IK Target transform.
-* Assign a Pole Target transform (Only comptaible with 3-joint chains).
+* Assign a Pole Target transform (Only compatible with 3-joint IK chains).
 * Tweak settings to get desired results.
 
 ## Upcoming features

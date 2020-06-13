@@ -10,9 +10,9 @@ public class EasyIK : MonoBehaviour
     public Transform ikTarget;
     public int iterations = 10;
     public float tolerance = 0.05f;
-    private Transform[] joints;
+    private Transform[] jointTransforms;
     private Vector3 startPosition;
-    private Vector3[] positions;
+    private Vector3[] jointPositions;
     private float[] boneLength;
     private float jointChainLength;
     private float distanceToTarget;
@@ -36,8 +36,8 @@ public class EasyIK : MonoBehaviour
     {
         // Let's set some properties
         jointChainLength = 0;
-        joints = new Transform[numberOfJoints];
-        positions = new Vector3[numberOfJoints];
+        jointTransforms = new Transform[numberOfJoints];
+        jointPositions = new Vector3[numberOfJoints];
         boneLength = new float[numberOfJoints];
         jointStartDirection = new Vector3[numberOfJoints];
         startRotation = new Quaternion[numberOfJoints];
@@ -45,11 +45,11 @@ public class EasyIK : MonoBehaviour
         var current = transform;
 
         // For each bone calculate and store the lenght of the bone
-        for (var i = 0; i < joints.Length; i += 1)
+        for (var i = 0; i < jointTransforms.Length; i += 1)
         {
-            joints[i] = current;
+            jointTransforms[i] = current;
             // If the bones lenght equals the max lenght, we are on the last joint in the chain
-            if (i == joints.Length - 1)
+            if (i == jointTransforms.Length - 1)
             {
                 return;
             }
@@ -77,11 +77,11 @@ public class EasyIK : MonoBehaviour
         if (poleTarget != null && numberOfJoints < 4)
         {
             // Get the limb axis direction
-            var limbAxis = (positions[2] - positions[0]).normalized;
+            var limbAxis = (jointPositions[2] - jointPositions[0]).normalized;
 
             // Get the direction from the root joint to the pole target and mid joint
-            Vector3 poleDirection = (poleTarget.position - positions[0]).normalized;
-            Vector3 boneDirection = (positions[1] - positions[0]).normalized;
+            Vector3 poleDirection = (poleTarget.position - jointPositions[0]).normalized;
+            Vector3 boneDirection = (jointPositions[1] - jointPositions[0]).normalized;
             
             // Ortho-normalize the vectors
             Vector3.OrthoNormalize(ref limbAxis, ref poleDirection);
@@ -91,23 +91,23 @@ public class EasyIK : MonoBehaviour
             Quaternion angle = Quaternion.FromToRotation(boneDirection, poleDirection);
 
             // Rotate the middle bone using the angle
-            positions[1] = angle * (positions[1] - positions[0]) + positions[0];
+            jointPositions[1] = angle * (jointPositions[1] - jointPositions[0]) + jointPositions[0];
         }
     }
 
     void Backward()
     {
         // Iterate through every position in the list until we reach the start of the chain
-        for (int i = positions.Length - 1; i >= 0; i -= 1)
+        for (int i = jointPositions.Length - 1; i >= 0; i -= 1)
         {
             // The last bone position should have the same position as the ikTarget
-            if (i == positions.Length - 1)
+            if (i == jointPositions.Length - 1)
             {
-                positions[i] = ikTarget.transform.position;
+                jointPositions[i] = ikTarget.transform.position;
             }
             else
             {
-                positions[i] = positions[i + 1] + (positions[i] - positions[i + 1]).normalized * boneLength[i];
+                jointPositions[i] = jointPositions[i + 1] + (jointPositions[i] - jointPositions[i + 1]).normalized * boneLength[i];
             }
         }
     }
@@ -115,52 +115,52 @@ public class EasyIK : MonoBehaviour
     void Forward()
     {
         // Iterate through every position in the list until we reach the end of the chain
-        for (int i = 0; i < positions.Length; i += 1)
+        for (int i = 0; i < jointPositions.Length; i += 1)
         {
             // The first bone position should have the same position as the startPosition
             if (i == 0)
             {
-                positions[i] = startPosition;
+                jointPositions[i] = startPosition;
             }
             else
             {
-                positions[i] = positions[i - 1] + (positions[i] - positions[i - 1]).normalized * boneLength[i - 1];
+                jointPositions[i] = jointPositions[i - 1] + (jointPositions[i] - jointPositions[i - 1]).normalized * boneLength[i - 1];
             }
         }
     }
 
     private void SolveIK()
     {
-        // Get the positions from the joints
-        for (int i = 0; i < joints.Length; i += 1)
+        // Get the jointPositions from the joints
+        for (int i = 0; i < jointTransforms.Length; i += 1)
         {
-            positions[i] = joints[i].position;
+            jointPositions[i] = jointTransforms[i].position;
         }
         // Distance from the root to the ikTarget
-        distanceToTarget = Vector3.Distance(positions[0], ikTarget.position);
+        distanceToTarget = Vector3.Distance(jointPositions[0], ikTarget.position);
 
         // IF THE TARGET IS NOT REACHABLE
         if (distanceToTarget > jointChainLength)
         {
             // Direction from root to ikTarget
-            var direction = ikTarget.position - positions[0];
+            var direction = ikTarget.position - jointPositions[0];
 
-            // Get the positions
-            for (int i = 1; i < positions.Length; i += 1)
+            // Get the jointPositions
+            for (int i = 1; i < jointPositions.Length; i += 1)
             {
-                positions[i] = positions[i - 1] + direction.normalized * boneLength[i - 1];
+                jointPositions[i] = jointPositions[i - 1] + direction.normalized * boneLength[i - 1];
             }
         }
         // IF THE TARGET IS REACHABLE
         else
         {
             // Get the distance from the leaf bone to the ikTarget
-            float distToTarget = Vector3.Distance(positions[positions.Length - 1], ikTarget.position);
+            float distToTarget = Vector3.Distance(jointPositions[jointPositions.Length - 1], ikTarget.position);
             float counter = 0;
             // While the distance to target is greater than the tolerance let's iterate until we are close enough
             while (distToTarget > tolerance)
             {
-                startPosition = positions[0];
+                startPosition = jointPositions[0];
                 Backward();
                 Forward();
                 counter += 1;
@@ -174,14 +174,14 @@ public class EasyIK : MonoBehaviour
         // Apply the pole constraint
         PoleConstraint();
 
-        // Apply the positions and rotations to the joints
-        for (int i = 0; i < positions.Length - 1; i += 1)
+        // Apply the jointPositions and rotations to the joints
+        for (int i = 0; i < jointPositions.Length - 1; i += 1)
         {
-            joints[i].position = positions[i];
-            var targetRotation = Quaternion.FromToRotation(jointStartDirection[i], positions[i + 1] - positions[i]);
-            joints[i].rotation = targetRotation * startRotation[i];
+            jointTransforms[i].position = jointPositions[i];
+            var targetRotation = Quaternion.FromToRotation(jointStartDirection[i], jointPositions[i + 1] - jointPositions[i]);
+            jointTransforms[i].rotation = targetRotation * startRotation[i];
         }
-        joints[joints.Length - 1].rotation = ikTarget.rotation;
+        jointTransforms[jointTransforms.Length - 1].rotation = ikTarget.rotation;
     }
 
     void Update()

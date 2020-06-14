@@ -1,6 +1,8 @@
 ## EasyIK - A fast and simple Inverse Kinematics solver (FABRIK) for Unity.
 ![](GIF/easyIK.gif)
 
+Showcase video: https://youtu.be/rYnmHs97CVI
+
 ## Setup
 * Drag and drop the script on the root joint.
 * Set the correct number of joints.

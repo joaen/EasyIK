@@ -18,7 +18,7 @@ Showcase video: https://youtu.be/rYnmHs97CVI
 
 ## Known bugs
 * ~IK joints sometimes rotate incorrectly.~ :heavy_check_mark:
-* IK target transform need to have same local rotation as the leaf bone.
+* ~Unwanted behavior if the IK target transform don't have same orientation as the leaf joint.~ :heavy_check_mark:
 
 ## License
 See the [LICENSE](https://github.com/joaen/EasyIK/blob/master/LICENSE) file.

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 public class EasyIK : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class EasyIK : MonoBehaviour
     private float distanceToTarget;
     private Quaternion[] startRotation;
     private Vector3[] jointStartDirection;
+    private Quaternion ikTargetStartRot;
+    private Quaternion lastJointStartRot;
 
     [Header("Pole target (3 joint chain)")]
     public Transform poleTarget;
@@ -41,6 +44,7 @@ public class EasyIK : MonoBehaviour
         boneLength = new float[numberOfJoints];
         jointStartDirection = new Vector3[numberOfJoints];
         startRotation = new Quaternion[numberOfJoints];
+        ikTargetStartRot = ikTarget.rotation;
 
         var current = transform;
 
@@ -51,6 +55,7 @@ public class EasyIK : MonoBehaviour
             // If the bones lenght equals the max lenght, we are on the last joint in the chain
             if (i == jointTransforms.Length - 1)
             {
+                lastJointStartRot = current.rotation;
                 return;
             }
             // Store length and add the sum of the bone lengths
@@ -181,7 +186,9 @@ public class EasyIK : MonoBehaviour
             var targetRotation = Quaternion.FromToRotation(jointStartDirection[i], jointPositions[i + 1] - jointPositions[i]);
             jointTransforms[i].rotation = targetRotation * startRotation[i];
         }
-        jointTransforms[jointTransforms.Length - 1].rotation = ikTarget.rotation;
+        // Let's constrain the rotation of the last joint to the IK target and maintain the offset.
+        Quaternion offset = lastJointStartRot * Quaternion.Inverse(ikTargetStartRot);
+        jointTransforms.Last().rotation = ikTarget.rotation * offset;
     }
 
     void Update()

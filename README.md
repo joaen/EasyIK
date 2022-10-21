@@ -17,5 +17,8 @@ Showcase video: https://youtu.be/rYnmHs97CVI
 
 **Debug:** Show or hide visual debugging gizmos for joints, rotations, pole, etc. 
 
+## Version
+- Unity 2020.3.19f1 LTS
+
 ## License
 See the [LICENSE](https://github.com/joaen/EasyIK/blob/master/LICENSE) file.

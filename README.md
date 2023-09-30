@@ -1,5 +1,5 @@
 ## EasyIK - A fast and simple Inverse Kinematics solver (FABRIK) for Unity.
-![](GIF/easyIK.gif)
+![easyIK](https://github.com/joaen/EasyIK/assets/6629861/0b5c82f5-f564-47ae-805e-99c90821ee4a)
 
 Showcase video: https://youtu.be/rYnmHs97CVI
 
